@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3001";
+const API_URL = "http://localhost:3001/api";
 
 export const apiCall = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');
@@ -9,7 +9,7 @@ export const apiCall = async (endpoint, options = {}) => {
   };
 
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers.Authorization = `Bearer ${token}`;
   }
 
   const response = await fetch(`${API_URL}${endpoint}`, {
@@ -19,14 +19,12 @@ export const apiCall = async (endpoint, options = {}) => {
 
   const data = await response.json();
 
-  // ❌ if error
   if (!response.ok) {
-    throw new Error(data.message || "API request failed");
+    throw new Error(data.message || 'API request failed');
   }
 
-  // 🔥 THIS LINE FIXES EVERYTHING
   if (data.body) {
-    return JSON.parse(data.body);
+    return typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
   }
 
   return data;
