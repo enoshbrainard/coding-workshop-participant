@@ -35,9 +35,10 @@ try {
 }
 
 const server = http.createServer((req, res) => {
+  // Always attach CORS headers to the response directly
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length');
   res.setHeader('Access-Control-Max-Age', '86400');
 
   // Handle preflight
@@ -89,7 +90,7 @@ const server = http.createServer((req, res) => {
   delete headers['sec-fetch-mode'];
   delete headers['sec-fetch-dest'];
 
-  // Keep only essential headers
+  // Keep all essential headers to avoid LocalStack rejecting the body
   const options = {
     hostname: target.hostname,
     port: target.port,
@@ -99,29 +100,43 @@ const server = http.createServer((req, res) => {
       'accept': headers.accept || 'application/json',
       'content-type': headers['content-type'] || 'application/json',
       'user-agent': headers['user-agent'] || 'proxy-server',
-      'authorization': headers['authorization'],
+      'authorization': headers['authorization'], 
       'content-length': headers['content-length'],
       'host': target.host
     }
   };
 
+  // Remove undefined headers which can cause HTTP requests to crash in some Node versions
+  Object.keys(options.headers).forEach(key => {
+    if (options.headers[key] === undefined) {
+      delete options.headers[key];
+    }
+  });
+
   const proxyReq = protocol.request(options, (proxyRes) => {
     // Filter out CORS headers from Lambda response since we set our own
-    const headers = { ...proxyRes.headers };
-    delete headers['access-control-allow-origin'];
-    delete headers['access-control-allow-methods'];
-    delete headers['access-control-allow-headers'];
-    delete headers['access-control-max-age'];
+    const proxyHeaders = { ...proxyRes.headers };
+    delete proxyHeaders['access-control-allow-origin'];
+    delete proxyHeaders['access-control-allow-methods'];
+    delete proxyHeaders['access-control-allow-headers'];
+    delete proxyHeaders['access-control-max-age'];
 
     // Forward status and filtered headers
-    res.writeHead(proxyRes.statusCode, headers);
+    res.writeHead(proxyRes.statusCode, proxyHeaders);
     proxyRes.pipe(res);
   });
 
   proxyReq.on('error', (err) => {
     console.error('Proxy error:', err.message);
-    res.writeHead(502, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ error: 'Bad Gateway', message: err.message }));
+    if (!res.headersSent) {
+      res.writeHead(502, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Bad Gateway', message: err.message }));
+    }
+  });
+
+  // Handle client aborting
+  req.on('error', (err) => {
+    proxyReq.destroy();
   });
 
   req.pipe(proxyReq);
@@ -137,9 +152,5 @@ server.listen(PORT, () => {
   for (const [name, targetUrl] of Object.entries(endpoints)) {
     console.log(`  /api/${name} -> ${targetUrl}`);
   }
-  console.log('');
-  console.log('==================================================');
-  console.log(`Update frontend to use: http://localhost:${PORT}`);
-  console.log('==================================================');
   console.log('');
 });

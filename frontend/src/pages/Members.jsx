@@ -8,7 +8,7 @@ export default function Members() {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({ name: '', role: '', team_id: '', manager_id: '' });
   
-  const fetchMembers = () => apiCall('/member-service/members').then(setMembers).catch(console.error);
+  const fetchMembers = () => apiCall('/member-service').then(setMembers).catch(console.error);
 
   useEffect(() => {
     fetchMembers();
@@ -16,7 +16,7 @@ export default function Members() {
 
   const handleAdd = async () => {
     try {
-      await apiCall('/member-service/members', {
+      await apiCall('/member-service', {
         method: 'POST',
         body: JSON.stringify({ 
           ...formData, 

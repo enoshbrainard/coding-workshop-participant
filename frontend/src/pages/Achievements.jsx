@@ -8,7 +8,7 @@ export default function Achievements() {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({ title: '', description: '', month: '', team_id: '' });
   
-  const fetchAchievements = () => apiCall('/achievement-service/achievements').then(setAchievements).catch(console.error);
+  const fetchAchievements = () => apiCall('/achievement-service').then(setAchievements).catch(console.error);
 
   useEffect(() => {
     fetchAchievements();
@@ -16,7 +16,7 @@ export default function Achievements() {
 
   const handleAdd = async () => {
     try {
-      await apiCall('/achievement-service/achievements', {
+      await apiCall('/achievement-service', {
         method: 'POST',
         body: JSON.stringify({ 
           ...formData, 

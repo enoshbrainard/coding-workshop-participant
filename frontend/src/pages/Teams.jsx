@@ -8,7 +8,7 @@ export default function Teams() {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({ name: '', location: '', leader_id: '' });
   
-  const fetchTeams = () => apiCall('/team-service/teams').then(setTeams).catch(console.error);
+  const fetchTeams = () => apiCall('/team-service').then(setTeams).catch(console.error);
 
   useEffect(() => {
     fetchTeams();
@@ -16,7 +16,7 @@ export default function Teams() {
 
   const handleAdd = async () => {
     try {
-      await apiCall('/team-service/teams', {
+      await apiCall('/team-service', {
         method: 'POST',
         body: JSON.stringify({ ...formData, leader_id: formData.leader_id ? Number(formData.leader_id) : null })
       });
