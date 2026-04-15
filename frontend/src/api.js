@@ -31,20 +31,26 @@ export const apiCall = async (endpoint, options = {}) => {
     }
 
     if (!response.ok) {
-        // 💎 Enhanced Error Mapping
         const errorMsg = data.detail || data.message || data.error || `Request failed (${response.status})`;
         console.error(`❌ API Error [${response.status}]: ${errorMsg}`);
         throw new Error(errorMsg);
     }
 
-    // 🛡️ Robust extraction: Handle Lambda body, results array, or direct array
+    // 🛡️ Super-Robust Extraction
     let result = data;
+    
+    // 1. Handle Lambda/Gateway 'body' wrapper
     if (data.body) {
       result = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
-    } else if (data.results && Array.isArray(data.results)) {
-      result = data.results;
-    } else if (data.data && Array.isArray(data.data)) {
-      result = data.data;
+    } 
+    
+    // 2. If result is STILL an object, try to find a list inside it
+    if (result && typeof result === 'object' && !Array.isArray(result)) {
+        // Look for common list keys: 'teams', 'members', 'achievements', 'results', 'data'
+        const possibleList = result.teams || result.members || result.achievements || result.results || result.data || result.analytics;
+        if (Array.isArray(possibleList)) {
+            result = possibleList;
+        }
     }
 
     console.log(`✅ Received [${endpoint}]:`, result);
@@ -52,8 +58,7 @@ export const apiCall = async (endpoint, options = {}) => {
 
   } catch (err) {
     if (err.name === 'TypeError' && err.message.includes('fetch')) {
-        console.error('🌐 Network Failure. Is the backend at localhost:3001 running?');
-        throw new Error('Network failure: Backend unreachable');
+        throw new Error('Network failure: Backend unreachable at localhost:3001');
     }
     throw err;
   }

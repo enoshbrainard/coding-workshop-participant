@@ -17,13 +17,12 @@ def cors_headers():
 
 def get_db():
     return psycopg.connect(
-        host=os.environ.get("DB_HOST", "localhost"),
-        dbname=os.environ.get("DB_NAME", "postgres"),
-        user=os.environ.get("DB_USER", "postgres"),
-        password=os.environ.get("DB_PASS", "postgres"),
+        host="localhost",
+        dbname="coding_workshop",
+        user="postgres",
+        password="postgres123",
         row_factory=dict_row
     )
-
 def authorize(event):
     headers = event.get('headers', {})
     auth_header = headers.get('Authorization', '') or headers.get('authorization', '')

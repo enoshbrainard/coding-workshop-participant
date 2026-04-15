@@ -1,50 +1,65 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Box, Button, TextField, Typography, Container, Paper, Alert } from '@mui/material';
-import { apiCall } from '../api';
+const API_URL = "http://localhost:3001";
 
-export default function Login() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
-  const navigate = useNavigate();
+export const apiCall = async (endpoint, options = {}) => {
+  const token = localStorage.getItem('token');
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const data = await apiCall('/auth-service/login', {
-        method: 'POST',
-        body: JSON.stringify({ username, password })
-      });
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('role', data.role);
-      navigate('/');
-    } catch (err) {
-      setError(err.message);
-    }
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
   };
 
-  return (
-    <Container component="main" maxWidth="xs">
-      <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Paper elevation={3} sx={{ p: 4, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <Typography component="h1" variant="h5">Sign in</Typography>
-          {error && <Alert severity="error" sx={{ width: '100%', mt: 2 }}>{error}</Alert>}
-          <Box component="form" onSubmit={handleLogin} sx={{ mt: 1 }}>
-            <TextField
-              margin="normal" required fullWidth id="username" label="Username"
-              autoFocus value={username} onChange={e => setUsername(e.target.value)}
-            />
-            <TextField
-              margin="normal" required fullWidth label="Password" type="password" id="password"
-              value={password} onChange={e => setPassword(e.target.value)}
-            />
-            <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-              Sign In
-            </Button>
-          </Box>
-        </Paper>
-      </Box>
-    </Container>
-  );
-}
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const url = `${API_URL}${endpoint}`;
+  console.log(`🚀 Dispatching: ${options.method || 'GET'} ${url}`);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers,
+    });
+
+    const text = await response.text();
+    let data;
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (err) {
+      if (response.ok) return text;
+      throw new Error(`Data format error: ${text.substring(0, 50)}...`);
+    }
+
+    if (!response.ok) {
+        const errorMsg = data.detail || data.message || data.error || `Request failed (${response.status})`;
+        console.error(`❌ API Error [${response.status}]: ${errorMsg}`);
+        throw new Error(errorMsg);
+    }
+
+    // 🛡️ Super-Robust Extraction
+    let result = data;
+    
+    // 1. Handle Lambda/Gateway 'body' wrapper
+    if (data.body) {
+      result = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+    } 
+    
+    // 2. If result is STILL an object, try to find a list inside it
+    if (result && typeof result === 'object' && !Array.isArray(result)) {
+        // Look for common list keys: 'teams', 'members', 'achievements', 'results', 'data'
+        const possibleList = result.teams || result.members || result.achievements || result.results || result.data || result.analytics;
+        if (Array.isArray(possibleList)) {
+            result = possibleList;
+        }
+    }
+
+    console.log(`✅ Received [${endpoint}]:`, result);
+    return result;
+
+  } catch (err) {
+    if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        throw new Error('Network failure: Backend unreachable at localhost:3001');
+    }
+    throw err;
+  }
+};
