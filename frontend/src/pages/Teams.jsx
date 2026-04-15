@@ -6,7 +6,7 @@ export default function Teams() {
   const [teams, setTeams] = useState([]);
   
   useEffect(() => {
-    apiCall('/teams').then(setTeams).catch(console.error);
+    apiCall('/team-service/teams').then(setTeams).catch(console.error);
   }, []);
 
   return (

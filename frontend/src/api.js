@@ -1,8 +1,8 @@
-const API_URL = 'http://localhost:3000'; // Update with API Gateway URL later
+const API_URL = "http://localhost:3001";
 
 export const apiCall = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');
-  
+
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
@@ -17,10 +17,17 @@ export const apiCall = async (endpoint, options = {}) => {
     headers,
   });
 
+  const data = await response.json();
+
+  // ❌ if error
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'API request failed');
+    throw new Error(data.message || "API request failed");
   }
 
-  return response.json();
+  // 🔥 THIS LINE FIXES EVERYTHING
+  if (data.body) {
+    return JSON.parse(data.body);
+  }
+
+  return data;
 };

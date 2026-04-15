@@ -6,7 +6,7 @@ export default function Members() {
   const [members, setMembers] = useState([]);
   
   useEffect(() => {
-    apiCall('/members').then(setMembers).catch(console.error);
+    apiCall('/member-service/members').then(setMembers).catch(console.error);
   }, []);
 
   return (

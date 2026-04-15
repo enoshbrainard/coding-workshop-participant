@@ -12,7 +12,7 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const data = await apiCall('/login', {
+      const data = await apiCall('/auth-service/login', {
         method: 'POST',
         body: JSON.stringify({ username, password })
       });
