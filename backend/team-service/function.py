@@ -24,7 +24,6 @@ def get_db():
         port=os.environ.get("POSTGRES_PORT", "5432"),
         row_factory=dict_row
     )
-
 def authorize(event):
     headers = event.get('headers', {})
     auth_header = headers.get('Authorization', '') or headers.get('authorization', '')
