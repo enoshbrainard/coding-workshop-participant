@@ -488,30 +488,30 @@ echo -e "  Generating frontend environment configuration..."
     echo -e "  ⚠ Could not generate .env.local"
 }
 
-# Restart proxy so it picks up the newly generated .env.local
-if [ -f /tmp/proxy-server.pid ]; then
-    kill "$(cat /tmp/proxy-server.pid)" || echo "WARNING: no process found"
-    rm -f /tmp/proxy-server.pid
-elif lsof -iTCP:3001 -sTCP:LISTEN > /dev/null 2>&1; then
-    lsof -ti:3001 | xargs kill 2>/dev/null
-fi
+# # Restart proxy so it picks up the newly generated .env.local
+# if [ -f /tmp/proxy-server.pid ]; then
+#     kill "$(cat /tmp/proxy-server.pid)" || echo "WARNING: no process found"
+#     rm -f /tmp/proxy-server.pid
+# elif lsof -iTCP:3001 -sTCP:LISTEN > /dev/null 2>&1; then
+#     lsof -ti:3001 | xargs kill 2>/dev/null
+# fi
 
-echo -e "  Starting CORS proxy server..."
-nohup node "$SCRIPT_DIR/proxy-server.js" > /tmp/proxy-server.log 2>&1 &
-PROXY_PID=$!
-
-# Wait for proxy to start
-sleep 2
-
-# Verify proxy started
-if kill -0 $PROXY_PID 2>/dev/null; then
-    echo -e "  ✓ Proxy server started (PID: $PROXY_PID)"
-    echo $PROXY_PID > /tmp/proxy-server.pid
-else
-    echo -e "  ✗ Proxy server failed to start"
-    cat /tmp/proxy-server.log | sed 's/^/    /'
-    exit 1
-fi
+# echo -e "  Starting CORS proxy server..."
+# nohup node "$SCRIPT_DIR/proxy-server.js" > /tmp/proxy-server.log 2>&1 &
+# PROXY_PID=$!
+# 
+# # Wait for proxy to start
+# sleep 2
+# 
+# # Verify proxy started
+# if kill -0 $PROXY_PID 2>/dev/null; then
+#     echo -e "  ✓ Proxy server started (PID: $PROXY_PID)"
+#     echo $PROXY_PID > /tmp/proxy-server.pid
+# else
+#     echo -e "  ✗ Proxy server failed to start"
+#     cat /tmp/proxy-server.log | sed 's/^/    /'
+#     exit 1
+# fi
 
 # Check if React dev server is already running
 REACT_RUNNING=false
@@ -530,7 +530,7 @@ echo "  • MongoDB:    Running on 0.0.0.0:27017"
 echo "  • PostgreSQL: Running on localhost:5432"
 echo "  • LocalStack: Running on localhost:4566"
 echo "  • Backend:    Deployed to LocalStack"
-echo "  • Proxy:      Running on localhost:3001"
+# echo "  • Proxy:      Running on localhost:3001"
 if [ "$REACT_RUNNING" = true ]; then
     echo "  • Frontend:   Already running on localhost:3000"
 else
@@ -541,7 +541,7 @@ echo ""
 if [ "$REACT_RUNNING" = true ]; then
     echo "All services are running!"
     echo "  Frontend: http://localhost:3000"
-    echo "  Backend:  http://localhost:3001"
+    # echo "  Backend:  http://localhost:3001"
 else
     echo "Starting React development server..."
     echo "  Frontend: http://localhost:3000"
@@ -551,10 +551,10 @@ else
     echo ""
 
     # Cleanup: Kill proxy server when script exits
-    if [ -f /tmp/proxy-server.pid ]; then
-        PROXY_PID=$(cat /tmp/proxy-server.pid)
-        trap "kill $PROXY_PID 2>/dev/null; rm -f /tmp/proxy-server.pid" EXIT
-    fi
+    # if [ -f /tmp/proxy-server.pid ]; then
+    #     PROXY_PID=$(cat /tmp/proxy-server.pid)
+    #     trap "kill $PROXY_PID 2>/dev/null; rm -f /tmp/proxy-server.pid" EXIT
+    # fi
 
     # Start React development server
     npm run dev

@@ -17,10 +17,11 @@ def cors_headers():
 
 def get_db():
     return psycopg.connect(
-        host=os.environ.get("DB_HOST", "localhost"),
-        dbname=os.environ.get("DB_NAME", "postgres"),
-        user=os.environ.get("DB_USER", "postgres"),
-        password=os.environ.get("DB_PASS", "postgres"),
+        host=os.environ.get("POSTGRES_HOST", os.environ.get("DB_HOST", "localhost")),
+        dbname=os.environ.get("POSTGRES_NAME", os.environ.get("DB_NAME", "coding_workshop")),
+        user=os.environ.get("POSTGRES_USER", os.environ.get("DB_USER", "postgres")),
+        password=os.environ.get("POSTGRES_PASS", os.environ.get("DB_PASS", "postgres123")),
+        port=os.environ.get("POSTGRES_PORT", "5432"),
         row_factory=dict_row
     )
 

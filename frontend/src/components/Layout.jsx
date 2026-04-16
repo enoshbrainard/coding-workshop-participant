@@ -14,8 +14,7 @@ export default function Layout({ children }) {
   const location = useLocation();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
+    localStorage.clear();
     navigate('/login');
   };
 
@@ -26,7 +25,8 @@ export default function Layout({ children }) {
     { text: 'Achievements', path: '/achievements', icon: <EmojiEventsIcon /> },
   ];
 
-  const role = localStorage.getItem('role') || 'Guest';
+  const role = localStorage.getItem('role') || 'User';
+  const username = localStorage.getItem('username') || 'Active Session';
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-gradient)' }}>
@@ -38,8 +38,8 @@ export default function Layout({ children }) {
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             boxSizing: 'border-box',
-            background: 'rgba(15, 23, 42, 0.8)',
-            backdropFilter: 'blur(10px)',
+            background: 'rgba(15, 23, 42, 0.9)',
+            backdropFilter: 'blur(20px)',
             borderRight: '1px solid var(--glass-border)',
             color: 'white',
           },
@@ -49,7 +49,7 @@ export default function Layout({ children }) {
         <Box sx={{ p: 4, mb: 4 }}>
           <Typography variant="h5" sx={{ 
             fontWeight: 900, 
-            letterSpacing: '-1px',
+            letterSpacing: '-1.5px',
             background: 'var(--primary-gradient)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
@@ -59,8 +59,8 @@ export default function Layout({ children }) {
           }}>
             ACME CORE
           </Typography>
-          <Typography variant="caption" sx={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
-            ORG TRANSFORMATION PORTAL
+          <Typography variant="caption" sx={{ color: 'var(--text-secondary)', fontWeight: 700, tracking: 1 }}>
+            INTELLIGENCE PORTAL v1.0
           </Typography>
         </Box>
 
@@ -72,22 +72,25 @@ export default function Layout({ children }) {
                 <ListItemButton 
                   onClick={() => navigate(item.path)}
                   sx={{
-                    borderRadius: '12px',
+                    borderRadius: '16px',
+                    py: 1.5,
                     background: active ? 'var(--primary-gradient)' : 'transparent',
+                    boxShadow: active ? '0 4px 15px rgba(99, 102, 241, 0.3)' : 'none',
                     '&:hover': {
                       background: active ? 'var(--primary-gradient)' : 'rgba(255,255,255,0.05)',
                     },
-                    transition: 'all 0.2s'
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                   }}
                 >
                   <ListItemIcon sx={{ color: active ? 'white' : 'var(--text-secondary)', minWidth: 40 }}>
-                    {item.icon}
+                    {React.cloneElement(item.icon, { fontSize: 'small' })}
                   </ListItemIcon>
                   <ListItemText 
                     primary={item.text} 
                     primaryTypographyProps={{ 
-                      fontWeight: active ? 700 : 500,
-                      fontSize: '0.95rem'
+                      fontWeight: active ? 800 : 500,
+                      fontSize: '0.9rem',
+                      letterSpacing: '0.3px'
                     }} 
                   />
                 </ListItemButton>
@@ -97,33 +100,48 @@ export default function Layout({ children }) {
         </List>
 
         <Box sx={{ mt: 'auto', p: 3, mb: 2 }}>
-          <Box className="glass-panel" sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-            <Avatar sx={{ background: 'var(--secondary-gradient)' }}>
-              {role[0]}
+          <Paper className="glass-panel" sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, mb: 3, background: 'rgba(255,255,255,0.02)' }}>
+            <Avatar sx={{ background: 'var(--secondary-gradient)', width: 32, height: 32, fontSize: '0.8rem', fontWeight: 800 }}>
+              {role[0].toUpperCase()}
             </Avatar>
             <Box>
-              <Typography variant="body2" fontWeight={700}>{role}</Typography>
-              <Typography variant="caption" color="var(--text-secondary)">Verified Session</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 800, fontSize: '0.85rem' }}>{role}</Typography>
+              <Typography variant="caption" sx={{ color: 'var(--text-secondary)', display: 'block' }}>{username}</Typography>
             </Box>
-          </Box>
+          </Paper>
           <Button 
             fullWidth 
             variant="outlined" 
             color="inherit"
-            startIcon={<LogoutIcon />}
+            startIcon={<LogoutIcon sx={{ fontSize: '1rem' }} />}
             onClick={handleLogout}
             sx={{ 
-              borderRadius: '12px', 
+              borderRadius: '16px', 
+              py: 1.2,
+              textTransform: 'none',
+              fontWeight: 700,
               borderColor: 'var(--glass-border)',
               '&:hover': { background: 'rgba(244, 63, 94, 0.1)', borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }
             }}
           >
-            Logout
+            System Exit
           </Button>
         </Box>
       </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, p: 4 }}>
+      <Box component="main" sx={{ flexGrow: 1, p: 4, position: 'relative' }}>
+          {/* Subtle background glow */}
+          <Box sx={{ 
+            position: 'absolute', 
+            top: '10%', 
+            right: '10%', 
+            width: '300px', 
+            height: '300px', 
+            background: 'var(--primary-gradient)', 
+            filter: 'blur(150px)', 
+            opacity: 0.1,
+            zIndex: -1 
+          }} />
         {children}
       </Box>
     </Box>
